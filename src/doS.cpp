@@ -131,6 +131,16 @@ void lexer(string ftxt)
             tokens.push_back("if");
             token = "";
         }
+        else if (token == "while")
+        {
+            tokens.push_back("while");
+            token = "";
+        }
+        else if (token == "endloop")
+        {
+            tokens.push_back("endloop");
+            token = "";
+        }
         else if (token == "else")
         {
             tokens.push_back("else");
@@ -205,8 +215,11 @@ void parse()
     int i = 0;
     int line = 1;
     int skipIf = 0;
+    int inLoop = 0;
+    int isLoop = 0;
     while(i < tokens.size())
     {
+        cout << inLoop << endl;
         if (tokens[i] == "nl")
         {
             line ++;
@@ -220,6 +233,10 @@ void parse()
             }
             else 
             {
+            if (isLoop == 1)
+            {
+                inLoop ++;
+            }
                     string value = tokens[i+1];
                     if (value[0] == '$')
                     {
@@ -237,6 +254,10 @@ void parse()
             }
             else 
             {
+            if (isLoop == 1)
+            {
+                inLoop ++;
+            }
                 string value = tokens[i+2];
                 if (value[0] == '$')
                 {
@@ -254,6 +275,10 @@ void parse()
             }
             else
             {
+            if (isLoop == 1)
+            {
+                inLoop ++;
+            }
                 string que = tokens[i+1] + " ";
                 string varName = tokens[i+2];
                 getInput(que, varName);
@@ -267,6 +292,10 @@ void parse()
                 i+=5;
             }
             else {
+            if (isLoop == 1)
+            {
+                inLoop ++;
+            }
                 string value1 = tokens[i+1];
                 string value2 = tokens[i+3];
                 string condition = tokens[i+2];
@@ -275,11 +304,11 @@ void parse()
                 {
                     if (value1 == value2)
                     {
-                        cout << "true" << endl;
+                        //cout << "true" << endl;
                     }
                     else
                     {
-                        cout << "false" << endl;
+                        //cout << "false" << endl;
                         skipIf = 1;
                     }
                 }
@@ -296,12 +325,60 @@ void parse()
             }
             else
             {
+            if (isLoop == 1)
+            {
+                inLoop ++;
+            }
                 skipIf = 1;
                 i+=2;
             }
         }
-        else if (tokens[i] == "endif")
+
+        else if (tokens[i] == "while" and tokens[i+4] == "then")
         {
+            if (skipIf == 1)
+            {
+                i += 5;
+            }
+            else
+            {
+                string value1 = tokens[i+1];
+                string value2 = tokens[i+3];
+                string condition = tokens[i+2];
+                if (condition == "eqeq")
+                {
+                    if (value1 == value2)
+                    {
+                        isLoop = 1;
+                    }
+                    else 
+                    {
+                        isLoop = 0;
+                    }
+                }
+                i += 5;
+                
+            }
+        }
+
+        else if (tokens[i] == "endloop")
+        {
+            if (isLoop == 1)
+            {
+                i -= inLoop ;
+            }
+            else
+            {
+                i += inLoop;
+            }
+
+        }
+        else if (tokens[i] == "endif")
+        { 
+            if (isLoop == 1)
+            {
+                inLoop ++;
+            }
             skipIf = 0;
             i++;
         }
