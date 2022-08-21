@@ -204,6 +204,7 @@ void parse()
 {
     int i = 0;
     int line = 1;
+    int skipIf = 0;
     while(i < tokens.size())
     {
         if (tokens[i] == "nl")
@@ -213,30 +214,96 @@ void parse()
         }
         else if (tokens[i] == "out")
         {
-            string value = tokens[i+1];
-            if (value[0] == '$')
+            if (skipIf == 1)
             {
-                value = findVar(value, line);
+                i += 2;
             }
-            cout << value << endl;
-            i += 2;
+            else 
+            {
+                    string value = tokens[i+1];
+                    if (value[0] == '$')
+                    {
+                        value = findVar(value, line);
+                    }
+                    cout << value << endl;
+                    i += 2;
+            }
         }
         else if (tokens[i][0] == '$')
         {
-            string value = tokens[i+2];
-            if (value[0] == '$')
+            if (skipIf == 1)
             {
-                value = findVar(value, line);
+                i += 3;
             }
-            assignVar(tokens[i],value);
-            i += 3;
+            else 
+            {
+                string value = tokens[i+2];
+                if (value[0] == '$')
+                {
+                    value = findVar(value, line);
+                }
+                assignVar(tokens[i],value);
+                i += 3;    
+            }
         }
         else if (tokens[i] == "input")
         {
-            string que = tokens[i+1] + " ";
-            string varName = tokens[i+2];
-            getInput(que, varName);
-            i += 3;
+            if (skipIf == 1)
+            {
+                i+=3;
+            }
+            else
+            {
+                string que = tokens[i+1] + " ";
+                string varName = tokens[i+2];
+                getInput(que, varName);
+                i += 3; 
+            }
+        }
+        else if (tokens[i] == "if" and tokens[i+4] == "then")
+        {
+            if (skipIf == 1)
+            {
+                i+=5;
+            }
+            else {
+                string value1 = tokens[i+1];
+                string value2 = tokens[i+3];
+                string condition = tokens[i+2];
+    
+                if (condition == "eqeq")
+                {
+                    if (value1 == value2)
+                    {
+                        cout << "true" << endl;
+                    }
+                    else
+                    {
+                        cout << "false" << endl;
+                        skipIf = 1;
+                    }
+                }
+                i+=5;
+                
+            }
+        }
+        else if (tokens[i] == "else" and tokens[i+1] == "then")
+        {
+            if (skipIf == 1)
+            {
+                skipIf = 0;
+                i+=2;
+            }
+            else
+            {
+                skipIf = 1;
+                i+=2;
+            }
+        }
+        else if (tokens[i] == "endif")
+        {
+            skipIf = 0;
+            i++;
         }
 
         else 
@@ -267,8 +334,8 @@ int main(int argc, char* argv[])
                 lexer(ftxt);
             }
             // run parse 
-            //parse();
-            viewToken();
+            parse();
+            //viewToken();
             file.close();
         }
         else
