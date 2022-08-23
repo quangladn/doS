@@ -219,11 +219,27 @@ void parse()
     int isLoop = 0;
     while(i < tokens.size())
     {
-        cout << inLoop << endl;
         if (tokens[i] == "nl")
         {
-            line ++;
-            i ++;
+            if (skipIf == 1)
+            {
+                line ++;
+                i ++;
+            }
+            else
+            {
+                line ++;
+                i ++;
+            }
+        }
+        else if (tokens[i] == "")
+        {
+            if (skipIf == 1)
+            {
+                i ++;
+            }
+            else 
+                i ++;
         }
         else if (tokens[i] == "out")
         {
@@ -235,7 +251,7 @@ void parse()
             {
             if (isLoop == 1)
             {
-                inLoop ++;
+                inLoop +=2;
             }
                     string value = tokens[i+1];
                     if (value[0] == '$')
@@ -246,7 +262,7 @@ void parse()
                     i += 2;
             }
         }
-        else if (tokens[i][0] == '$')
+        else if (tokens[i][0] == '$' and tokens[i+1] == "equals")
         {
             if (skipIf == 1)
             {
@@ -256,7 +272,7 @@ void parse()
             {
             if (isLoop == 1)
             {
-                inLoop ++;
+                inLoop += 3;
             }
                 string value = tokens[i+2];
                 if (value[0] == '$')
@@ -264,7 +280,7 @@ void parse()
                     value = findVar(value, line);
                 }
                 assignVar(tokens[i],value);
-                i += 3;    
+                i += 3;
             }
         }
         else if (tokens[i] == "input")
@@ -277,7 +293,7 @@ void parse()
             {
             if (isLoop == 1)
             {
-                inLoop ++;
+                inLoop +=3;
             }
                 string que = tokens[i+1] + " ";
                 string varName = tokens[i+2];
@@ -294,7 +310,7 @@ void parse()
             else {
             if (isLoop == 1)
             {
-                inLoop ++;
+                inLoop +=5;
             }
                 string value1 = tokens[i+1];
                 string value2 = tokens[i+3];
@@ -327,7 +343,7 @@ void parse()
             {
             if (isLoop == 1)
             {
-                inLoop ++;
+                inLoop +=2;
             }
                 skipIf = 1;
                 i+=2;
@@ -336,6 +352,7 @@ void parse()
 
         else if (tokens[i] == "while" and tokens[i+4] == "then")
         {
+            inLoop -= 4;
             if (skipIf == 1)
             {
                 i += 5;
@@ -363,13 +380,16 @@ void parse()
 
         else if (tokens[i] == "endloop")
         {
+            int reLoop = inLoop + 3;
             if (isLoop == 1)
             {
-                i -= inLoop ;
+                i -= reLoop;
+                inLoop = 0;
             }
             else
             {
-                i += inLoop;
+                i += reLoop;
+                inLoop = 0;
             }
 
         }
@@ -385,11 +405,18 @@ void parse()
 
         else 
         {
-            cout << "TokensError: Token \'" << tokens[i] << "\' is not link more token" << endl;
-            i ++;
+            if (tokens[i-1] == "equals" and isLoop == 1)
+            {
+                i ++;
+            }
+            else
+            {
+                cout << "SyntaxError: invalid syntax, line: " << line << endl;
+                i ++;
+            }
         }
+    
     }
-
 }
 
 int main(int argc, char* argv[])

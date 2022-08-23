@@ -1,5 +1,11 @@
-if 1 == 1 ~
-    out 123
+$a = 1
+
+if 2 == 1 ~
+    $a = 123
+    out $a
 else ~
-    out 456
+    $a = 456
+    out $a
 endif 
+
+out $a

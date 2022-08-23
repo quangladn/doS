@@ -1,3 +1,5 @@
+$a = ""
 while 1 == 1 ~
-    out "is loop"
+    $a = "hello world"
+    out $a
 endloop
