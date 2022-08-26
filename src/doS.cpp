@@ -83,7 +83,40 @@ void lexer(string ftxt)
                 token = " ";
             }
         }
-        
+        else if (token == ";")
+        {
+            if (num != "")
+            {
+                tokens.push_back(num);
+                num = "";
+            }
+            if (var_ != "")
+            {
+                tokens.push_back(var_);
+                var_ = "";
+                varStarted = 0;
+            }
+
+            tokens.push_back(";");
+            token = "";
+        }
+        else if (token == "<")
+        {
+            if (num != "")
+            {
+                tokens.push_back(num);
+                num = "";
+            }
+            if (var_ != "")
+            {
+                tokens.push_back(var_);
+                var_ = "";
+                varStarted = 0;
+            }
+
+            tokens.push_back("less");
+            token = "";
+        }
         else if (token == "=")
         {
             if (num != "")
@@ -108,7 +141,6 @@ void lexer(string ftxt)
             }
             token = "";
         }
-
         else if (token == "$")
         {
             var_ += token;
@@ -120,7 +152,6 @@ void lexer(string ftxt)
             var_ += token;
             token = "";
         }
-
         else if (token == "out")
         {
             tokens.push_back("out");
@@ -206,11 +237,12 @@ void viewToken()
 {
     for (int i=0; i < tokens.size(); i++)
     {
+        cout << "---\n";
         cout << tokens[i] << endl;
     }
 }
 
-void parse()
+void parse(char file[])
 {
     int i = 0;
     int line = 1;
@@ -228,6 +260,10 @@ void parse()
             }
             else
             {
+            if (isLoop == 1)
+            {
+                inLoop ++;
+            }
                 line ++;
                 i ++;
             }
@@ -238,8 +274,13 @@ void parse()
             {
                 i ++;
             }
-            else 
-                i ++;
+            else {
+
+            if (isLoop == 1) { 
+                inLoop ++;
+              }
+              i ++;
+          }
         }
         else if (tokens[i] == "out")
         {
@@ -352,7 +393,7 @@ void parse()
 
         else if (tokens[i] == "while" and tokens[i+4] == "then")
         {
-            inLoop -= 4;
+            //inLoop -= 4;
             if (skipIf == 1)
             {
                 i += 5;
@@ -379,8 +420,8 @@ void parse()
         }
 
         else if (tokens[i] == "endloop")
-        {
-            int reLoop = inLoop + 3;
+        { 
+            int reLoop = inLoop + 5;
             if (isLoop == 1)
             {
                 i -= reLoop;
@@ -405,15 +446,12 @@ void parse()
 
         else 
         {
-            if (tokens[i-1] == "equals" and isLoop == 1)
-            {
-                i ++;
-            }
-            else
-            {
-                cout << "SyntaxError: invalid syntax, line: " << line << endl;
-                i ++;
-            }
+          //cout << line << endl;
+          cout << "File \"" << file << "\", line " << line << endl;
+          cout << "\t \'" << tokens[i] << "\'" << endl;
+          cout << "SyntaxError: invalid syntax" << endl;
+          i++;
+                //break;
         }
     
     }
@@ -438,8 +476,8 @@ int main(int argc, char* argv[])
                 lexer(ftxt);
             }
             // run parse 
-            parse();
-            //viewToken();
+            parse(argv[1]);
+            viewToken();
             file.close();
         }
         else
