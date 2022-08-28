@@ -6,7 +6,15 @@ doS is written in c++ which is an interpriter programming language
 pls install c++ if you want build code
 
 #### windows
-doS dont support for windows. but you can add path handmade
+```
+setx /M path "%path%;<path>
+```
+if you have c++ in your computer then you shoud use
+```
+g++ src/doS.cpp -o build/doS
+setx /M path "%path%;<path>
+```
+because i update for windows when i have free time
 ##### build
 ```
 make build_
