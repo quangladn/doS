@@ -2,7 +2,7 @@
 If you want to help me with the code, here is the document for you
 ## environment for dev
 - install c++
-- if you use linux or osx then not use make to build, if you use window then use bash by git to use make
+- if you use linux or osx then use make to build, if you use window then use bash by git to use make
 - if you build for win pls build in /build/Windows, if build in osx or linux build in /build
 
 ## lexer
