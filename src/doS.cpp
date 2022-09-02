@@ -477,7 +477,7 @@ int main(int argc, char* argv[])
             }
             // run parse 
             parse(argv[1]);
-            viewToken();
+            //viewToken();
             file.close();
         }
         else
