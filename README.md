@@ -58,6 +58,7 @@ else ~
 while 1 == 1 ~
   get "chat: " $message
   out $message
+endloop
 ```
 
 ##### for
