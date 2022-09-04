@@ -11,12 +11,12 @@ i dont know add path in command prompt
 
 #### linux macos
 ```
-./publish/linux_mac.sh
+./publish/install/linux_mac.sh
 ```
 
 #### unix
 ```
-./publish/unix.sh
+./publish/install/unix.sh
 ```
 
 ### usage
