@@ -6,7 +6,6 @@ doS is written in c++ which is an interpriter programming language
 pls install c++ if you want build code
 
 #### windows
-Windows 7 or older is not supported.
 i dont know add path in command prompt
 
 #### linux macos
