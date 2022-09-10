@@ -55,7 +55,7 @@ void lexer(string ftxt)
     for (int i=0; ftxt[i] != 0; i++)
     {
         token += ftxt[i];
-        if (token == "\n" or token == "\r")
+        if (token == "\n" and stateSkipSpace == 0 or token == "\r")
         {
             if (num != "")
             {
@@ -83,7 +83,7 @@ void lexer(string ftxt)
                 token = " ";
             }
         }
-        else if (token == ";")
+        else if (token == ";" and stateSkipSpace == 0)
         {
             if (num != "")
             {
@@ -100,7 +100,7 @@ void lexer(string ftxt)
             tokens.push_back(";");
             token = "";
         }
-        else if (token == "<")
+        else if (token == "<" and stateSkipSpace == 0)
         {
             if (num != "")
             {
@@ -117,7 +117,7 @@ void lexer(string ftxt)
             tokens.push_back("less");
             token = "";
         }
-        else if (token == "=")
+        else if (token == "=" and stateSkipSpace == 0)
         {
             if (num != "")
             {
@@ -141,7 +141,7 @@ void lexer(string ftxt)
             }
             token = "";
         }
-        else if (token == "$")
+        else if (token == "$" and stateSkipSpace == 0)
         {
             var_ += token;
             varStarted = 1;
@@ -152,32 +152,42 @@ void lexer(string ftxt)
             var_ += token;
             token = "";
         }
-        else if (token == "out")
+        else if (token == "#" and stateSkipSpace == 0)
+        {
+            tokens.push_back("debug");
+            token = "";
+        }
+        else if (token == "out" and stateSkipSpace == 0)
         {
             tokens.push_back("out");
             token = "";
         }
-        else if (token == "if")
+        else if (token == "if" and stateSkipSpace == 0)
         {
             tokens.push_back("if");
             token = "";
         }
-        else if (token == "while")
+        else if (token == "while" and stateSkipSpace == 0)
         {
             tokens.push_back("while");
             token = "";
         }
-        else if (token == "endloop")
+        else if (token == "break" and stateSkipSpace == 0)
+        {
+            tokens.push_back("break");
+            token = "";
+        }
+        else if (token == "endloop" and stateSkipSpace == 0)
         {
             tokens.push_back("endloop");
             token = "";
         }
-        else if (token == "else")
+        else if (token == "else" and stateSkipSpace == 0)
         {
             tokens.push_back("else");
             token = "";
         }
-        else if (token == "~")
+        else if (token == "~" and stateSkipSpace == 0)
         {
             if (num != "")
             {
@@ -193,13 +203,13 @@ void lexer(string ftxt)
             tokens.push_back("then");
             token = "";
         }
-        else if (token == "endif")
+        else if (token == "endif" and stateSkipSpace == 0)
         {
             tokens.push_back("endif");
             token = "";
         }
 
-        else if (token == "get")
+        else if (token == "get" and stateSkipSpace == 0)
         {
             tokens.push_back("input");
             token = "";
@@ -253,18 +263,46 @@ void parse(char file[])
     {
         if (tokens[i] == "nl")
         {
-            if (skipIf == 1)
-            {
-                line ++;
-                i ++;
-            }
-            else
-            {
-            if (isLoop == 1)
-            {
+                if (isLoop == 1)
+                {
+                    inLoop ++;
+                    line --;
+                    i++;
+                }
+                else {
+                    line ++;
+                    i ++;
+                }
+        }
+        else if (tokens[i] == "debug")
+        {
+            if (isLoop == 1) { 
                 inLoop ++;
             }
-                line ++;
+            for (auto item : varlist)
+            {
+                cout << "variable " << item.first << " : " << item.second << endl;
+            }
+            cout << "isLoop: " << isLoop << endl;
+            cout << "skipIf: " << skipIf << endl;
+            cout << "line: " << line << endl;
+
+            cout << "stop# ";
+            cin;
+            cin.ignore();
+            //system("pause");
+            i++;
+            
+        }
+        else if (tokens[i] == "break" and isLoop == 1)
+        {
+            if (skipIf == 1)
+            {
+              inLoop ++;
+              i++;
+            }
+            else {
+                isLoop = 0;
                 i ++;
             }
         }
@@ -446,16 +484,17 @@ void parse(char file[])
 
         else 
         {
-          //cout << line << endl;
+          cout << line << endl;
           cout << "File \"" << file << "\", line " << line << endl;
           cout << "\t \'" << tokens[i] << "\'" << endl;
           cout << "SyntaxError: invalid syntax" << endl;
           i++;
-                //break;
+          break;
         }
     
     }
 }
+
 
 int main(int argc, char* argv[])
 {
@@ -463,27 +502,32 @@ int main(int argc, char* argv[])
     {
         cout << "usage doS <path>" << endl;
     }
-    else if (argc > 1)
+    else if (argc == 2)
     {
-        string ftxt;
-        // open file
-        ifstream file(argv[1]);
-        if (file.is_open())
-        {
-            while (getline(file,ftxt))
-            {
-                // read file and create Token 
-                lexer(ftxt);
-            }
-            // run parse 
-            parse(argv[1]);
-            //viewToken();
-            file.close();
-        }
-        else
-        {
-            cout << "FileNotFoud: File \'" << argv[1] << "\' not found" << endl;
-        }
+      if (argv[1] == "-v") {
+        cout << "beta-0.2.2: while update" << endl;
+      }
+      else {
+      string ftxt;
+      // open file
+      ifstream file(argv[1]);
+      if (file.is_open())
+      {
+          while (getline(file,ftxt))
+          {
+              // read file and create Token 
+              lexer(ftxt);
+          }
+          // run parse 
+          parse(argv[1]);
+          viewToken();
+          file.close();
+          }
+      else
+      {
+        cout << "FileNotFoud: File \'" << argv[1] << "\' not found" << endl;
+      }
+      }
     }
     //cout << "hello world from doS" << endl;
     return 0;
