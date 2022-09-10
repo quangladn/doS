@@ -57,9 +57,17 @@ else ~
 while 1 == 1 ~
   get "chat: " $message
   out $message
+  if $message == "#exit" ~
+    break
+  endif
 endloop
 ```
 
 ##### for
 updating...
 
+#### debug
+```
+$test = "hello world"
+#out $test
+```
