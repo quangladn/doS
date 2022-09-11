@@ -1,4 +1,7 @@
-build_:
+test_:
+	g++ src/doS.cpp -o build/doS
+	./build/doS test/for.do
+build: src/doS.cpp	
 	g++ src/doS.cpp -o build/doS
 install-linux-build:
 	make build_

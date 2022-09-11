@@ -1,2 +1,4 @@
-for $i=1; $i < 10; $i ++ ~
-    out 123
+for $i=1; $i < 10; $i++ ~
+  out "hello"
+endloop
+out "test"

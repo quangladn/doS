@@ -42,6 +42,20 @@ void getInput(string question, string varName)
     cin.ignore();
 }
 
+void debug_(int isLoop,int skipIf,int line) 
+{
+  for (auto item : varlist)
+  {
+    cout << "variable " << item.first << " : " << item.second << endl;
+  }
+  cout << "isLoop: " << isLoop << endl;
+  cout << "skipIf: " << skipIf << endl;
+  cout << "line: " << line << endl;
+  cout << "stop# ";
+  cin;
+  cin.ignore();
+}
+
 void lexer(string ftxt)
 {
     ftxt += "\n";
@@ -141,6 +155,26 @@ void lexer(string ftxt)
             }
             token = "";
         }
+        else if (token == "+" or token == "-") //or token == "*" or token == "/" )
+        {
+            if (num != "")
+            {
+                tokens.push_back(num);
+                num = "";
+            }
+            if (var_ != "")
+            {
+                tokens.push_back(var_);
+                var_ = "";
+                varStarted = 0;
+            }
+
+            if (tokens[tokens.size() - 1] == "+")
+              tokens[tokens.size() - 1] = "++";
+            else
+              tokens.push_back(token);
+            token = "";
+        }
         else if (token == "$" and stateSkipSpace == 0)
         {
             var_ += token;
@@ -154,6 +188,17 @@ void lexer(string ftxt)
         }
         else if (token == "#" and stateSkipSpace == 0)
         {
+            if (num != "")
+            {
+                tokens.push_back(num);
+                num = "";
+            }
+            if (var_ != "")
+            {
+                tokens.push_back(var_);
+                var_ = "";
+                varStarted = 0;
+            }
             tokens.push_back("debug");
             token = "";
         }
@@ -170,6 +215,11 @@ void lexer(string ftxt)
         else if (token == "while" and stateSkipSpace == 0)
         {
             tokens.push_back("while");
+            token = "";
+        }
+        else if (token == "for" and stateSkipSpace == 0)
+        {
+            tokens.push_back("for");
             token = "";
         }
         else if (token == "break" and stateSkipSpace == 0)
@@ -259,6 +309,8 @@ void parse(char file[])
     int skipIf = 0;
     int inLoop = 0;
     int isLoop = 0;
+    int isFor = 0;
+    int i_ = 1;
     while(i < tokens.size())
     {
         if (tokens[i] == "nl")
@@ -279,17 +331,7 @@ void parse(char file[])
             if (isLoop == 1) { 
                 inLoop ++;
             }
-            for (auto item : varlist)
-            {
-                cout << "variable " << item.first << " : " << item.second << endl;
-            }
-            cout << "isLoop: " << isLoop << endl;
-            cout << "skipIf: " << skipIf << endl;
-            cout << "line: " << line << endl;
-
-            cout << "stop# ";
-            cin;
-            cin.ignore();
+            debug_(isLoop,skipIf,line);
             //system("pause");
             i++;
             
@@ -393,6 +435,15 @@ void parse(char file[])
             }
                 string value1 = tokens[i+1];
                 string value2 = tokens[i+3];
+                if (value1[0] == '$' and value2[0] or value1[0] == '$' or value2[0] == '$')
+                {
+                  if (value1[0] == '$') {
+                    value1 = findVar(value1,line);
+                  }
+                  if (value2[0] == '$') {
+                    value2 = findVar(value2,line);
+                  }
+                }
                 string condition = tokens[i+2];
     
                 if (condition == "eqeq")
@@ -456,18 +507,86 @@ void parse(char file[])
                 
             }
         }
+        else if (tokens[i] == "for" and tokens[i+4] == ";" and tokens[i+8] == ";" and tokens[i+11] == "then")
+        {
+          if (skipIf == 1) {
+            i += 12;
+          }
+          else {
+            int value;
+            if (isFor == 0) {
+              value = atoi(tokens[i+1].c_str());
+            } else if (isFor == 1) {
+              value = atoi(findVar(tokens[i+1],line).c_str());
+            }
+            else {
+              cout << "";
+            }
+            assignVar(tokens[i+1],to_string(value));
+            string condition = tokens[i+6];
+            if (condition == "less") {
 
+            if (atoi(findVar(tokens[i+5],line).c_str()) < atoi(tokens[i+7].c_str())-2) {
+              isLoop = 1;
+              isFor = 1;
+              if (tokens[i+10] == "++") {
+                assignVar(tokens[i+9],to_string(value+1));
+              } 
+              else if (tokens[i+10] == "--") {
+                assignVar(tokens[i+9],to_string(value-1));
+              }
+              else {
+                cout << line << endl;
+                cout << "File \"" << file << "\", line " << line << endl;
+                cout << "\t \'" << tokens[i] << "\'" << endl;
+                cout << "SyntaxError: Unexpected token " << "~" << endl;
+                i++;
+                break;
+
+              }
+              i+=12;
+            } 
+            else {
+              isLoop = 0;
+              i+=12;
+            }}
+            else {
+                cout << line << endl;
+                cout << "File \"" << file << "\", line " << line << endl;
+                cout << "\t \'" << tokens[i] << "\'" << endl;
+                cout << "SyntaxError: Unexpected token " << "~" << endl;
+                i++;
+                break;
+            }
+          }
+            
+        }
         else if (tokens[i] == "endloop")
         { 
-            int reLoop = inLoop + 5;
+          int add;
+          if (isFor == 0)
+          {
+            add = 5;
+          } else if (isFor == 1)
+          {
+            add = 12;
+          }
+            int reLoop = inLoop + add;
+            i_++;
             if (isLoop == 1)
             {
                 i -= reLoop;
                 inLoop = 0;
             }
-            else
+            else if (isLoop == 0)
             {
-                i += reLoop;
+                i += reLoop+1;
+                inLoop = 0;
+            }
+            
+            else if (isLoop == 0)
+            {
+                i += reLoop+1;
                 inLoop = 0;
             }
 
@@ -508,25 +627,25 @@ int main(int argc, char* argv[])
         cout << "beta-0.2.2: while update" << endl;
       }
       else {
-      string ftxt;
-      // open file
-      ifstream file(argv[1]);
-      if (file.is_open())
-      {
-          while (getline(file,ftxt))
-          {
-              // read file and create Token 
-              lexer(ftxt);
-          }
-          // run parse 
-          parse(argv[1]);
-          viewToken();
-          file.close();
-          }
-      else
-      {
-        cout << "FileNotFoud: File \'" << argv[1] << "\' not found" << endl;
-      }
+        string ftxt;
+        // open file
+        ifstream file(argv[1]);
+        if (file.is_open())
+        {
+            while (getline(file,ftxt))
+            {
+                // read file and create Token 
+                lexer(ftxt);
+            }
+            // run parse 
+            parse(argv[1]);
+            //viewToken();
+            file.close();
+        }
+        else
+        {
+          cout << "FileNotFoud: File \'" << argv[1] << "\' not found" << endl;
+        }
       }
     }
     //cout << "hello world from doS" << endl;

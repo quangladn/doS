@@ -65,7 +65,11 @@ endloop
 ```
 
 ##### for
-updating...
+```
+for $i=0; $i < 11; $i++ ~
+  out $i
+endloop
+```
 
 #### debug
 ```
