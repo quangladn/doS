@@ -9,28 +9,52 @@ using namespace std;
 
 vector <string> tokens = {};
 map <string, string> varlist;
+map <string, string> funcList;
 
+
+// functional
 void assignVar(string varName, string value)
 {
-    varlist[varName] = value;
+    int foundVar = 0;
+    string data;
+    for (auto var_ : varlist)
+    {
+        if (varName == var_.first)
+        {
+          foundVar = 1;
+        }
+    }
+    if (foundVar == 0)
+    {
+      varlist[varName] = value;
+    }
+    else
+    {
+      map <string,string>::iterator it = varlist.find(varName);
+      if (it != varlist.end())
+        it->second = value;
+    }
 }
 
 string findVar(string varName, int line)
 {
     int foundVar = 0;
+    string data;
     for (auto var_ : varlist)
     {
         if (varName == var_.first)
         {
-            return var_.second;
+            data = var_.second;
+            foundVar = 1;
             break;
         }
     }
     if (foundVar == 0)
     {
         cout << "VarError: Var \'" << varName << "\' not found, line: " << line << endl; 
-        return "";
+        data = "";
     }
+    return data;
 }
 
 void getInput(string question, string varName)
@@ -38,8 +62,9 @@ void getInput(string question, string varName)
     string value;
     cout << question;
     cin >> value;
+    //cout << cin << endl;
     assignVar(varName,value);
-    cin.ignore();
+    cin.clear();
 }
 
 void debug_(int isLoop,int skipIf,int line) 
@@ -52,20 +77,26 @@ void debug_(int isLoop,int skipIf,int line)
   cout << "skipIf: " << skipIf << endl;
   cout << "line: " << line << endl;
   cout << "stop# ";
-  cin;
-  cin.ignore();
+  string a;
+  cin >> a;
+  cin.clear();
 }
 
 void lexer(string ftxt)
 {
     ftxt += "\n";
 
+    // init variabe
     string token;
     string str_;
     string num;
     string var_;
+    string funcParam;
+    string token_;
     int varStarted = 0;
     int stateSkipSpace = 0;
+    int isFunc = 0;
+    // lexer
     for (int i=0; ftxt[i] != 0; i++)
     {
         token += ftxt[i];
@@ -169,21 +200,12 @@ void lexer(string ftxt)
                 varStarted = 0;
             }
 
-            if (tokens[tokens.size() - 1] == "+")
+            if (tokens[tokens.size() - 1] == "+" and token == "+")
+              tokens[tokens.size() - 1] = "++";
+            if (tokens[tokens.size() - 1] == "-" and token == "-")
               tokens[tokens.size() - 1] = "++";
             else
               tokens.push_back(token);
-            token = "";
-        }
-        else if (token == "$" and stateSkipSpace == 0)
-        {
-            var_ += token;
-            varStarted = 1;
-            token = "";
-        }
-        else if (varStarted == 1)
-        {
-            var_ += token;
             token = "";
         }
         else if (token == "#" and stateSkipSpace == 0)
@@ -202,9 +224,70 @@ void lexer(string ftxt)
             tokens.push_back("debug");
             token = "";
         }
+        else if (token == "(" and stateSkipSpace == 0) 
+        {
+          isFunc = 1;
+          token = "";
+        }
+        else if (token[token.size()- 1] == ')' and isFunc == 1 and stateSkipSpace == 0) 
+        {
+          //token[token.size()- 1] = "";
+          if (num != "")
+          {
+              tokens.push_back(num);
+              num = "";
+          }
+          if (var_ != "")
+          {
+              tokens.push_back(var_);
+              var_ = "";
+              varStarted = 0;
+          }
+          isFunc = 0;
+          tokens.push_back(funcParam);
+          cout << "funcParam: " << funcParam << endl;
+          funcParam = "";
+        }
+        else if (isFunc == 1 and token != ")") 
+        {
+          if (num != "")
+          {
+              tokens.push_back(num);
+              num = "";
+          }
+          if (var_ != "")
+          {
+              tokens.push_back(var_);
+              var_ = "";
+              varStarted = 0;
+          }
+          funcParam += token;
+          token = "";
+        }
+        else if (token == "$" and stateSkipSpace == 0)
+        {
+            var_ += token;
+            varStarted = 1;
+            token = "";
+        }
+        else if (varStarted == 1)
+        {
+            var_ += token;
+            token = "";
+        }
         else if (token == "out" and stateSkipSpace == 0)
         {
             tokens.push_back("out");
+            token = "";
+        }
+        else if (token == "func" and stateSkipSpace == 0)
+        {
+            tokens.push_back("func");
+            token = "";
+        }
+        else if (token == "endfunc" and stateSkipSpace == 0)
+        {
+            tokens.push_back("endfunc");
             token = "";
         }
         else if (token == "if" and stateSkipSpace == 0)
@@ -293,6 +376,7 @@ void lexer(string ftxt)
     }
 }
 
+// test
 void viewToken()
 {
     for (int i=0; i < tokens.size(); i++)
@@ -305,21 +389,25 @@ void viewToken()
 void parse(char file[])
 {
     int i = 0;
-    int line = 1;
+    int line = 1; 
     int skipIf = 0;
     int inLoop = 0;
     int isLoop = 0;
     int isFor = 0;
-    int i_ = 1;
+    int reLoop = 0;
     while(i < tokens.size())
     {
+      cout << inLoop << endl;
         if (tokens[i] == "nl")
         {
                 if (isLoop == 1)
                 {
                     inLoop ++;
-                    line --;
                     i++;
+                    if (reLoop == 1) {
+
+                    } else
+                      line ++;
                 }
                 else {
                     line ++;
@@ -336,30 +424,25 @@ void parse(char file[])
             i++;
             
         }
-        else if (tokens[i] == "break" and isLoop == 1)
+        else if (tokens[i] == "break")
         {
-            if (skipIf == 1)
+          if (skipIf == 1)
+          {
+            i++;
+          }
+          else {
+            if (isLoop == 0) 
             {
-              inLoop ++;
+              cout << "File \"" << file << "\", line " << line << endl;
+              cout << "\t \'" << tokens[i] << "\'" << endl;
+              cout << "SyntaxError: break outside loop" << endl;
+              break;
+            }
+            else if (isLoop == 1) 
+            {
+              isLoop = 0;
               i++;
             }
-            else {
-                isLoop = 0;
-                i ++;
-            }
-        }
-        else if (tokens[i] == "")
-        {
-            if (skipIf == 1)
-            {
-                i ++;
-            }
-            else {
-
-            if (isLoop == 1) { 
-                inLoop ++;
-              }
-              i ++;
           }
         }
         else if (tokens[i] == "out")
@@ -412,27 +495,28 @@ void parse(char file[])
             }
             else
             {
-            if (isLoop == 1)
-            {
-                inLoop +=3;
-            }
                 string que = tokens[i+1] + " ";
                 string varName = tokens[i+2];
                 getInput(que, varName);
                 i += 3; 
+            if (isLoop == 1)
+            {
+                inLoop +=3;
+            }
             }
         }
         else if (tokens[i] == "if" and tokens[i+4] == "then")
         {
+            if (isLoop == 1)
+            {
+                inLoop +=5;
+            }
+            else {}
             if (skipIf == 1)
             {
                 i+=5;
             }
             else {
-            if (isLoop == 1)
-            {
-                inLoop +=5;
-            }
                 string value1 = tokens[i+1];
                 string value2 = tokens[i+3];
                 if (value1[0] == '$' and value2[0] or value1[0] == '$' or value2[0] == '$')
@@ -450,31 +534,34 @@ void parse(char file[])
                 {
                     if (value1 == value2)
                     {
-                        //cout << "true" << endl;
+                        cout << "true" << endl;
+                        skipIf = 0;
                     }
                     else
                     {
-                        //cout << "false" << endl;
+                        cout << "false" << endl;
                         skipIf = 1;
                     }
                 }
+                else {}
                 i+=5;
                 
             }
         }
         else if (tokens[i] == "else" and tokens[i+1] == "then")
         {
+            if (isLoop == 1)
+            {
+                inLoop +=2;
+            }
+            else {}
             if (skipIf == 1)
             {
                 skipIf = 0;
                 i+=2;
             }
-            else
+            else if (skipIf == 0)
             {
-            if (isLoop == 1)
-            {
-                inLoop +=2;
-            }
                 skipIf = 1;
                 i+=2;
             }
@@ -482,13 +569,13 @@ void parse(char file[])
 
         else if (tokens[i] == "while" and tokens[i+4] == "then")
         {
-            //inLoop -= 4;
             if (skipIf == 1)
             {
                 i += 5;
             }
             else
             {
+                inLoop ++;
                 string value1 = tokens[i+1];
                 string value2 = tokens[i+3];
                 string condition = tokens[i+2];
@@ -502,6 +589,15 @@ void parse(char file[])
                     {
                         isLoop = 0;
                     }
+                }
+                else
+                {
+
+                  cout << "File \"" << file << "\", line " << line << endl;
+                  cout << "   \'" << tokens[i] << "\'" << endl;
+                  cout << "SyntaxError: Invalid token " << condition << endl;
+                  i++;
+                  break;
                 }
                 i += 5;
                 
@@ -536,7 +632,6 @@ void parse(char file[])
                 assignVar(tokens[i+9],to_string(value-1));
               }
               else {
-                cout << line << endl;
                 cout << "File \"" << file << "\", line " << line << endl;
                 cout << "\t \'" << tokens[i] << "\'" << endl;
                 cout << "SyntaxError: Unexpected token " << "~" << endl;
@@ -551,7 +646,6 @@ void parse(char file[])
               i+=12;
             }}
             else {
-                cout << line << endl;
                 cout << "File \"" << file << "\", line " << line << endl;
                 cout << "\t \'" << tokens[i] << "\'" << endl;
                 cout << "SyntaxError: Unexpected token " << "~" << endl;
@@ -572,22 +666,22 @@ void parse(char file[])
             add = 12;
           }
             int reLoop = inLoop + add;
-            i_++;
             if (isLoop == 1)
             {
                 i -= reLoop;
                 inLoop = 0;
+                reLoop = 1;
             }
             else if (isLoop == 0)
             {
                 i += reLoop+1;
                 inLoop = 0;
+                reLoop = 0;
             }
-            
-            else if (isLoop == 0)
+
+            else
             {
-                i += reLoop+1;
-                inLoop = 0;
+
             }
 
         }
@@ -597,18 +691,20 @@ void parse(char file[])
             {
                 inLoop ++;
             }
+            else
+            {
+
+            }
             skipIf = 0;
             i++;
         }
-
         else 
         {
-          cout << line << endl;
           cout << "File \"" << file << "\", line " << line << endl;
           cout << "\t \'" << tokens[i] << "\'" << endl;
-          cout << "SyntaxError: invalid syntax" << endl;
+          cout << "SyntaxError: Invalid syntax" << endl;
           i++;
-          break;
+         // break;
         }
     
     }
@@ -623,7 +719,7 @@ int main(int argc, char* argv[])
     }
     else if (argc == 2)
     {
-      if (argv[1] == "-v") {
+      if (strcmp(argv[1], "-v") == 0) {
         cout << "beta-0.2.2: while update" << endl;
       }
       else {
@@ -640,6 +736,7 @@ int main(int argc, char* argv[])
             // run parse 
             parse(argv[1]);
             //viewToken();
+            cout << tokens.size() << endl;
             file.close();
         }
         else
@@ -648,6 +745,5 @@ int main(int argc, char* argv[])
         }
       }
     }
-    //cout << "hello world from doS" << endl;
     return 0;
 }
