@@ -4,6 +4,7 @@
 #include <sstream>
 #include <fstream>
 #include <map>
+#include <cstring>
 
 using namespace std;
 
@@ -198,11 +199,11 @@ void lexer(string ftxt)
                 tokens.push_back(var_);
                 var_ = "";
                 varStarted = 0;
-            }
+            }else{}
 
             if (tokens[tokens.size() - 1] == "+" and token == "+")
               tokens[tokens.size() - 1] = "++";
-            if (tokens[tokens.size() - 1] == "-" and token == "-")
+            else if (tokens[tokens.size() - 1] == "-" and token == "-")
               tokens[tokens.size() - 1] = "++";
             else
               tokens.push_back(token);
@@ -397,7 +398,6 @@ void parse(char file[])
     int reLoop = 0;
     while(i < tokens.size())
     {
-      cout << inLoop << endl;
         if (tokens[i] == "nl")
         {
                 if (isLoop == 1)
@@ -534,12 +534,12 @@ void parse(char file[])
                 {
                     if (value1 == value2)
                     {
-                        cout << "true" << endl;
+                        //cout << "true" << endl;
                         skipIf = 0;
                     }
                     else
                     {
-                        cout << "false" << endl;
+                        //cout << "false" << endl;
                         skipIf = 1;
                     }
                 }
@@ -575,7 +575,6 @@ void parse(char file[])
             }
             else
             {
-                inLoop ++;
                 string value1 = tokens[i+1];
                 string value2 = tokens[i+3];
                 string condition = tokens[i+2];
@@ -700,6 +699,8 @@ void parse(char file[])
         }
         else 
         {
+          cout << inLoop << endl;
+          cout << isLoop << endl;
           cout << "File \"" << file << "\", line " << line << endl;
           cout << "\t \'" << tokens[i] << "\'" << endl;
           cout << "SyntaxError: Invalid syntax" << endl;
@@ -720,7 +721,7 @@ int main(int argc, char* argv[])
     else if (argc == 2)
     {
       if (strcmp(argv[1], "-v") == 0) {
-        cout << "beta-0.2.2: while update" << endl;
+        cout << "beta-0.2: loop update" << endl;
       }
       else {
         string ftxt;
