@@ -1,6 +1,6 @@
 # doS | do script
 
-doS is written in c++ which is an interpriter programming language
+doS is written in c++ which is an intpreter programming language
 
 ## installation
 pls install c++ if you want build code
@@ -57,9 +57,13 @@ endif
 ```
 while 1 == 1 ~
   get "chat: " $message
-  out $message
   if $message == "#exit" ~
     break
+  else ~
+    if $message == "@hello" ~
+      out "hello world"
+    else ~
+      out $message
   endif
 endloop
 ```
@@ -67,7 +71,7 @@ endloop
 ##### for
 ```
 for $i=0; $i < 11; $i++ ~
-  out $i
+  out "hello world"
 endloop
 ```
 

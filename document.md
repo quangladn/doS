@@ -1,9 +1,11 @@
-# dev
+# dead
 If you want to help me with the code, here is the document for you
 ## environment for dev
-- install c++
-- if you use linux or osx then use make to build, if you use window then use bash by git to use make
-- if you build for win pls build in /build/Windows, if build in osx or linux build in /build
+- install c++ 9+
+
+## build
+
+You need to build in "build/folder under os" and i will do the rest
 
 ## lexer
 ### note
@@ -25,7 +27,7 @@ out
 \n
 ```
 ### add token
-If your keyword has the following parameter as a variable or a number, use the following code
+If your keyword has the following parameter as a variable or a number, use the following code:
 ```
 else if (token == "<keyword>") 
 {
@@ -33,7 +35,7 @@ else if (token == "<keyword>")
   token = "";
 }
 ```
-If keyword have front parameter then
+If keyword have front parameter:
 ```
 else if (token == "<keyword>")
 {
@@ -60,7 +62,7 @@ In parse there are few similarities but enough to code
 ### example
 #### get
 ```
-else if (tokens[i] == "input" and tokens[i+2][0] == '$')
+else if (tokens[i] == "input")
 {
   getInput(tokens[i+1],tokens[i+2])
   i+=3;
