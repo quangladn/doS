@@ -406,7 +406,6 @@ void parse(char file[])
                     inLoop ++;
                     i++;
                     if (reLoop == 1) {
-
                     } else
                       line ++;
                 }
@@ -679,17 +678,17 @@ void parse(char file[])
             if (isLoop == 1)
             {
                 i -= sizeLoop;
+                reLoop = 1;
                 inLoop = 0;
             }
             else if (isLoop == 0)
             {
                 i += sizeLoop+1;
+                reLoop = 0;
                 inLoop = 0;
             }
             else
-            {
-
-            }
+            {}
 
         }
         else if (tokens[i] == "endif")

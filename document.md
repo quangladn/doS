@@ -1,4 +1,4 @@
-# dead
+# for dev
 If you want to help me with the code, here is the document for you
 ## environment for dev
 - install c++ 9+

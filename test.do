@@ -7,5 +7,5 @@ while 1 == 1 ~
       out "hello world"
     else ~
       out $cmd
-  #endif
+  endif
 endloop
