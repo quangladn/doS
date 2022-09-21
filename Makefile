@@ -1,8 +1,6 @@
-test_:
-	g++ src/doS.cpp -o build/doS
-	./build/doS test/for.do
-build: src/doS.cpp	
-	g++ src/doS.cpp -o build/doS
+
+build: src/doS.cpp
+	g++ src/doS.cpp -o build/Termux/doS
 install-linux-build:
 	make build_
 	cp build/doS usr/local/bin/doS
