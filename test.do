@@ -3,11 +3,9 @@ while 1 == 1 ~
   if $cmd == "exit" ~
     break
   else ~
-    out "j"
-  if $cmd == "hello" ~
-    out "hello world"
-  else ~
-    out "*"
-    out $cmd
-  endif
+    if $cmd == "hello" ~
+      out "hello world"
+    else ~
+      out $cmd
+  #endif
 endloop

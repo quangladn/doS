@@ -62,8 +62,9 @@ void getInput(string question, string varName)
 {
     string value;
     cout << question;
-    cin >> value;
-    //cout << cin << endl;
+//    cin >> value;
+    getline(cin,value);
+    //cout << value << endl;
     assignVar(varName,value);
     cin.clear();
 }
@@ -511,12 +512,11 @@ void parse(char file[])
             {
                 inLoop +=5;
             }
-            else {}
             if (skipIf == 1)
             {
                 i+=5;
             }
-            else {
+            else if (skipIf == 0){
                 string value1 = tokens[i+1];
                 string value2 = tokens[i+3];
                 if (value1[0] == '$' and value2[0] or value1[0] == '$' or value2[0] == '$')
@@ -543,7 +543,11 @@ void parse(char file[])
                         skipIf = 1;
                     }
                 }
-                else {}
+                else {
+                  cout << "File \"" << file << "\", line " << line << endl;
+                  cout << "\t \'" << tokens[i] << "\'" << endl;
+                  cout << "SyntaxError: Unexpected token " << "~" << endl;
+                }
                 i+=5;
                 
             }
@@ -565,6 +569,10 @@ void parse(char file[])
                 skipIf = 1;
                 i+=2;
             }
+            else {
+              cout << "!codeError! skipIf have value is 0 or 1\n";
+              break;
+            }
         }
 
         else if (tokens[i] == "while" and tokens[i+4] == "then")
@@ -578,6 +586,7 @@ void parse(char file[])
                 string value1 = tokens[i+1];
                 string value2 = tokens[i+3];
                 string condition = tokens[i+2];
+                i += 5;
                 if (condition == "eqeq")
                 {
                     if (value1 == value2)
@@ -595,10 +604,8 @@ void parse(char file[])
                   cout << "File \"" << file << "\", line " << line << endl;
                   cout << "   \'" << tokens[i] << "\'" << endl;
                   cout << "SyntaxError: Invalid token " << condition << endl;
-                  i++;
                   break;
                 }
-                i += 5;
                 
             }
         }
@@ -606,6 +613,9 @@ void parse(char file[])
         {
           if (skipIf == 1) {
             i += 12;
+          }
+          if (isLoop == 1) {
+            inLoop +=12;
           }
           else {
             int value;
@@ -615,7 +625,7 @@ void parse(char file[])
               value = atoi(findVar(tokens[i+1],line).c_str());
             }
             else {
-              cout << "";
+              //cout << "1";
             }
             assignVar(tokens[i+1],to_string(value));
             string condition = tokens[i+6];
@@ -634,7 +644,6 @@ void parse(char file[])
                 cout << "File \"" << file << "\", line " << line << endl;
                 cout << "\t \'" << tokens[i] << "\'" << endl;
                 cout << "SyntaxError: Unexpected token " << "~" << endl;
-                i++;
                 break;
 
               }
@@ -647,8 +656,9 @@ void parse(char file[])
             else {
                 cout << "File \"" << file << "\", line " << line << endl;
                 cout << "\t \'" << tokens[i] << "\'" << endl;
+                cout << "\t \'" << tokens[i-1] << "\'" << endl;
+                cout << "\t \'" << tokens[i+1] << "\'" << endl;
                 cout << "SyntaxError: Unexpected token " << "~" << endl;
-                i++;
                 break;
             }
           }
@@ -664,20 +674,18 @@ void parse(char file[])
           {
             add = 12;
           }
-            int reLoop = inLoop + add;
+          isFor = 0;
+            int sizeLoop = inLoop + add;
             if (isLoop == 1)
             {
-                i -= reLoop;
+                i -= sizeLoop;
                 inLoop = 0;
-                reLoop = 1;
             }
             else if (isLoop == 0)
             {
-                i += reLoop+1;
+                i += sizeLoop+1;
                 inLoop = 0;
-                reLoop = 0;
             }
-
             else
             {
 
@@ -699,13 +707,15 @@ void parse(char file[])
         }
         else 
         {
-          cout << inLoop << endl;
-          cout << isLoop << endl;
+          if (isLoop == 1) {
+            i++;
+          } else {
           cout << "File \"" << file << "\", line " << line << endl;
           cout << "\t \'" << tokens[i] << "\'" << endl;
           cout << "SyntaxError: Invalid syntax" << endl;
           i++;
-         // break;
+          }
+         //break;
         }
     
     }
@@ -735,9 +745,9 @@ int main(int argc, char* argv[])
                 lexer(ftxt);
             }
             // run parse 
+
             parse(argv[1]);
             //viewToken();
-            cout << tokens.size() << endl;
             file.close();
         }
         else
