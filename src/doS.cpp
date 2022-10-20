@@ -9,20 +9,22 @@
 using namespace std;
 
 vector <string> tokens = {};
-map <string, string> varlist;
-map <string, string> funcList;
+map <string, string> varlist; // "$a": "test"
+map <vector<string>, vector<string> > funcList; // { {name,"$arg"}: {"out","hello world"} }
 
-
+int errorInLexer = 0;
+int lineL = 1;
+string fileName;
 // functional
 void assignVar(string varName, string value)
 {
     int foundVar = 0;
-    string data;
     for (auto var_ : varlist)
     {
         if (varName == var_.first)
         {
           foundVar = 1;
+          break;
         }
     }
     if (foundVar == 0)
@@ -84,6 +86,43 @@ void debug_(int isLoop,int skipIf,int line)
   cin.clear();
 }
 
+
+void createFunc(string func_name,vector <string> arg,vector <string> code)
+{
+  //try {
+
+  vector <string> init = {func_name};
+  for (int i=0; i < arg.size();i++)
+  {
+    init.push_back(arg[i]);  
+  }
+  funcList[init] = code;
+}
+
+vector <string> getFunc(string funcName,int line)
+{
+    int foundFunc = 0;
+    vector <string> code__ = {};
+    for (auto f : funcList)
+    {
+        if (funcName == (f.first)[0])
+        {
+            for (int i=0;i < f.second.size();i++)
+            {
+              code__.push_back((f.second)[i]);
+            }
+            foundFunc = 1;
+            break;
+        }
+      //cout << (f.first)[0] << " | \n" << (f.second) << endl;
+    }
+    if (foundFunc == 0)
+    {
+        cout << "FuncError: Func \'" << funcName << "\' not found, line: " << line << endl; 
+    }
+    return code__;
+}
+
 void lexer(string ftxt)
 {
     ftxt += "\n";
@@ -95,13 +134,16 @@ void lexer(string ftxt)
     string var_;
     string funcParam;
     string token_;
+    string funcName = "";
+    int isFuncName = 0;
     int varStarted = 0;
     int stateSkipSpace = 0;
-    int isFunc = 0;
+    int isFuncParama = 0;
     // lexer
     for (int i=0; ftxt[i] != 0; i++)
     {
         token += ftxt[i];
+        token_ = ftxt[i];
         if (token == "\n" and stateSkipSpace == 0 or token == "\r")
         {
             if (num != "")
@@ -146,6 +188,24 @@ void lexer(string ftxt)
 
             tokens.push_back(";");
             token = "";
+        }
+        else if (token == "," and stateSkipSpace == 0)
+        {
+          if (isFuncParama == 1)
+          {
+
+            tokens.push_back(funcParam);
+            funcParam = "";
+          }
+          
+          else 
+          {
+          cout << "File \"" << fileName << "\", line " << lineL << endl;
+          cout << "\t \'" << "," << "\'" << endl;
+          cout << "SyntaxError: Invalid syntax" << endl;
+          errorInLexer = 1;
+          }
+          token = "";
         }
         else if (token == "<" and stateSkipSpace == 0)
         {
@@ -226,52 +286,53 @@ void lexer(string ftxt)
             tokens.push_back("debug");
             token = "";
         }
-        else if (token == "(" and stateSkipSpace == 0) 
+        else if (token == "func" and stateSkipSpace == 0)
         {
-          isFunc = 1;
+          isFuncName = 1;
+          tokens.push_back("func");
           token = "";
         }
-        else if (token[token.size()- 1] == ')' and isFunc == 1 and stateSkipSpace == 0) 
+        else if (token == "endfunc" and stateSkipSpace == 0)
         {
-          //token[token.size()- 1] = "";
-          if (num != "")
-          {
-              tokens.push_back(num);
-              num = "";
-          }
-          if (var_ != "")
-          {
-              tokens.push_back(var_);
-              var_ = "";
-              varStarted = 0;
-          }
-          isFunc = 0;
+          isFuncName = 1;
+          tokens.push_back("endfunc");
+          token = "";
+        }
+        else if (token == "return" and stateSkipSpace == 0)
+        {
+          tokens.push_back("return");
+          token = "";
+        }
+        else if (token == " " and stateSkipSpace == 0 and isFuncName == 1 or
+            token == " " and stateSkipSpace == 0 and isFuncParama == 1)
+        {
+          token = "";
+        }
+        else if (token == "\(" and stateSkipSpace == 0 and isFuncName == 1)
+        {
+          isFuncName = 0;
+          tokens.push_back(funcName+"\(");
+          isFuncParama = 1;
+          token = "";
+          funcName = "";
+        }
+
+        else if (token == ")" and stateSkipSpace == 0 and isFuncParama== 1)
+        {
           tokens.push_back(funcParam);
-          cout << "funcParam: " << funcParam << endl;
+          isFuncParama = 0;
+          token = "";
           funcParam = "";
         }
-        else if (isFunc == 1 and token != ")") 
+        else if (token_ == "\(" and stateSkipSpace == 0)
         {
-          if (num != "")
-          {
-              tokens.push_back(num);
-              num = "";
-          }
-          if (var_ != "")
-          {
-              tokens.push_back(var_);
-              var_ = "";
-              varStarted = 0;
-          }
-          funcParam += token;
+          tokens.push_back("callFunc");
+          tokens.push_back(token);
+          isFuncParama = 1;
           token = "";
+          token_ = "";
         }
-        else if (token == "$" and stateSkipSpace == 0)
-        {
-            var_ += token;
-            varStarted = 1;
-            token = "";
-        }
+        
         else if (varStarted == 1)
         {
             var_ += token;
@@ -280,16 +341,6 @@ void lexer(string ftxt)
         else if (token == "out" and stateSkipSpace == 0)
         {
             tokens.push_back("out");
-            token = "";
-        }
-        else if (token == "func" and stateSkipSpace == 0)
-        {
-            tokens.push_back("func");
-            token = "";
-        }
-        else if (token == "endfunc" and stateSkipSpace == 0)
-        {
-            tokens.push_back("endfunc");
             token = "";
         }
         else if (token == "if" and stateSkipSpace == 0)
@@ -364,13 +415,29 @@ void lexer(string ftxt)
                 token = "";
             }
         }
+        else if (isFuncName == 1)
+        {
+          funcName += token;
+          token = "";
+        }
+        else if (isFuncParama == 1)
+        {
+          funcParam += token;
+          token = "";
+        }
         else if (stateSkipSpace == 1)
         {
             str_ += token;
             token = "";
         }
+        else if (token == "$" and stateSkipSpace == 0)
+        {
+            var_ += token;
+            varStarted = 1;
+            token = "";
+        }
         else if (token == "1" or token == "2" or token == "3" or token == "4" or token == "5" or 
-                token == "6" or token == "7" or token == "8" or token == "9" or token == "0" )
+                token == "6" or token == "7" or token == "8" or token == "9" or token == "0" or token == "." )
         {
             num += token;
             token = "";
@@ -384,22 +451,36 @@ void viewToken()
     for (int i=0; i < tokens.size(); i++)
     {
         cout << "---\n";
-        cout << tokens[i] << endl;
+        cout << "\'"<<tokens[i] <<"\'" << endl;
     }
 }
 
-void parse(char file[])
+void parse(char file[],vector <string> tokens,int line)
 {
+    string nameFunc;
+    string funcParam;
+    vector <string> arg;
+    vector <string> code_;
     int i = 0;
-    int line = 1; 
     int skipIf = 0;
     int inLoop = 0;
     int isLoop = 0;
     int isFor = 0;
     int reLoop = 0;
-    while(i < tokens.size())
+    int inFunc = 0;
+    while(i < tokens.size() and errorInLexer == 0)
     {
-        if (tokens[i] == "nl")
+        if (inFunc == 1 and tokens[i] != "endfunc")
+        {
+          if (tokens[i] == "then")
+          {
+
+          }
+          else
+            code_.push_back(tokens[i]);
+          i ++;
+        }
+        else if (tokens[i] == "nl")
         {
                 if (isLoop == 1)
                 {
@@ -468,8 +549,12 @@ void parse(char file[])
         }
         else if (tokens[i][0] == '$' and tokens[i+1] == "equals")
         {
+            string varName = tokens[i];
             if (skipIf == 1)
             {
+              if (tokens[i+2] == "callFunc")
+                i+=5;
+              else
                 i += 3;
             }
             else 
@@ -482,9 +567,25 @@ void parse(char file[])
                 if (value[0] == '$')
                 {
                     value = findVar(value, line);
+                    i++;
                 }
-                assignVar(tokens[i],value);
-                i += 3;
+                else if (value == "callFunc")
+                {
+                  vector <string> codeInFunc = getFunc(tokens[i+3],line) ;
+                  parse(file,codeInFunc,line);
+                  codeInFunc.clear();
+                  string sysOu = "$sysOutput";
+                  value  = findVar(sysOu,line);
+                  if (tokens[i+4] == "")
+                    i++;
+                  i+=2;
+                }
+                else
+                {
+                  i++;
+                }
+                assignVar(varName,value);
+                i += 2;
             }
         }
         else if (tokens[i] == "input")
@@ -663,6 +764,52 @@ void parse(char file[])
           }
             
         }
+        else if (tokens[i] == "func")
+        {
+
+          nameFunc = tokens[i+1];
+          int skipParam  = 1;
+          inFunc = 1;
+          for (int j = i+2; tokens[j] != "then";j++)
+          {
+            arg.push_back(tokens[j]);
+            skipParam++;
+          }
+          i += 2 + skipParam;
+        }
+        else if (tokens[i] == "endfunc")
+        {
+          inFunc = 0;
+          createFunc(nameFunc,arg,code_);
+          arg.clear();
+          code_.clear();
+          nameFunc = "";
+          funcParam = "";
+          i++;
+        }
+        else if (tokens[i] == "callFunc")
+        {
+          try {
+          //string funcName = tokens[i+1];
+          vector <string> codeInFunc = getFunc(tokens[i+1],line) ;
+          parse(file,codeInFunc,line);
+          codeInFunc.clear();
+          i+=2;
+          if (tokens[i+3] == "")
+            i++;
+          } catch (const bad_alloc&)
+          {
+            cout << 1234 << endl;
+          }
+        }
+        else if (tokens[i] == "return")
+        {
+          string re = tokens[i+1];
+          if (tokens[i+1][0] == '$')
+            re = findVar(tokens[i+1],line);
+          assignVar("$sysOutput",re);
+          i+=2;
+        }
         else if (tokens[i] == "endloop")
         { 
           int add;
@@ -713,16 +860,19 @@ void parse(char file[])
           cout << "\t \'" << tokens[i] << "\'" << endl;
           cout << "SyntaxError: Invalid syntax" << endl;
           i++;
+          break;
           }
          //break;
         }
     
     }
+    
 }
 
 
 int main(int argc, char* argv[])
 {
+  //try {
     if (argc == 1)
     {
         cout << "usage doS <path>" << endl;
@@ -730,7 +880,7 @@ int main(int argc, char* argv[])
     else if (argc == 2)
     {
       if (strcmp(argv[1], "-v") == 0) {
-        cout << "beta-0.2: loop update" << endl;
+        cout << "beta-0.3: function update" << endl;
       }
       else {
         string ftxt;
@@ -738,14 +888,23 @@ int main(int argc, char* argv[])
         ifstream file(argv[1]);
         if (file.is_open())
         {
+          fileName = argv[1];
             while (getline(file,ftxt))
             {
+              if (errorInLexer == 1)
+              {
+                break;
+              }
+              else
+              {
                 // read file and create Token 
                 lexer(ftxt);
+                lineL ++;
+              }
             }
             // run parse 
 
-            parse(argv[1]);
+            parse(argv[1],tokens,1);
             //viewToken();
             file.close();
         }
@@ -756,4 +915,9 @@ int main(int argc, char* argv[])
       }
     }
     return 0;
+    //}
+  /*catch (const bad_alloc&)
+  {
+    return -1;
+  }*/
 }

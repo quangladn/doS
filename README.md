@@ -80,3 +80,16 @@ endloop
 $test = "hello world"
 #out $test
 ```
+#### function
+```
+func fName() ~
+  out "test function"
+endfunc
+func PI() ~
+  return 3.14
+endfunc
+fName()
+
+$PI = PI()
+out $PI
+```
