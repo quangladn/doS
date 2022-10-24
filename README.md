@@ -3,24 +3,18 @@
 doS is written in c++ which is an intpreter programming language
 
 ## installation
-pls install c++ if you want build code
+pls install c++ and javac if you want build code
 
-#### windows
-i dont know add path in command prompt
 
-#### linux macos
-```
-./publish/install/linux_mac.sh
-```
-
-#### unix
-```
-./publish/install/unix.sh
-```
-
-### usage
+### usage intpreter
 ```
 doS <path>
+```
+
+### usage dowload package
+```
+# i don't know how can i run java in cmd without going to directory :0)
+java dpm package_name
 ```
 
 ## docs

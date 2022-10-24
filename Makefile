@@ -1,6 +1,7 @@
 
 build: src/doS.cpp
 	g++ src/doS.cpp -o build/Termux/doS
+	javac src/dmp.java -d build/Termux/
 build-windows: src/doS.cpp
 	windres src/recource.rc -O coff -o build/Windows/re.res
 	g++ src/doS.cpp -o  build/Windows/doS build/Windows/re.res
