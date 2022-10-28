@@ -6,5 +6,10 @@ func pi() ~
   return 3.14
 endfunc
 
-$PI = pi()
-out $PI
+func send_hello($name) ~
+  return $name
+endfunc
+
+$test = send_hello("quang")
+out $test
+
