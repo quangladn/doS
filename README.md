@@ -82,8 +82,13 @@ endfunc
 func PI() ~
   return 3.14
 endfunc
+func getName($name) ~
+  return $name
+endFUnc
 fName()
-
 $PI = PI()
 out $PI
+out "\n"
+get "name: " $name
+$saveName = getName($name)
 ```
