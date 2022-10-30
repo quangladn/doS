@@ -83,7 +83,12 @@ func PI() ~
   return 3.14
 endfunc
 fName()
-
+func getName($name) ~
+  return $host
+endfunc
 $PI = PI()
 out $PI
+out "\n"
+get "hello: " $name
+$name_2 = getName($name)
 ```
