@@ -134,7 +134,7 @@ vector<string> getFunc(string funcName, int line, vector<string> arg)
     code__.clear();
 }
 
-void lexer(string ftxt)
+void lexer(string ftxt,vector <string> &tokens)
 {
     ftxt += "\n";
 
@@ -146,10 +146,12 @@ void lexer(string ftxt)
     string funcParam;
     string token_;
     string funcName = "";
+    string module_name = "";
     int isFuncName = 0;
     int varStarted = 0;
     int stateSkipSpace = 0;
     int isFuncParama = 0;
+    int module_get = 0;
     // lexer
     for (int i = 0; ftxt[i] != 0; i++)
     {
@@ -167,6 +169,12 @@ void lexer(string ftxt)
                 tokens.push_back(var_);
                 var_ = "";
                 varStarted = 0;
+            }
+            if (module_get == 1)
+            {
+              module_get =0;
+              tokens.push_back(module_name);
+              module_name ="";
             }
 
             tokens.push_back("nl");
@@ -348,7 +356,24 @@ void lexer(string ftxt)
             token = "";
             token_ = "";
         }
+        else if (token == "module_import" and stateSkipSpace == 0)
+        {
+          module_get = 1;
+          tokens.push_back("module_import");
+          token = "";
+        }
+        else if (module_get == 1)
+        {
+          if (token == " ")
+          {
 
+          } else
+          {
+
+            module_name += token;
+            token = "";
+          }
+        }
         else if (varStarted == 1)
         {
             var_ += token;
@@ -866,6 +891,25 @@ void parse(char file[], vector<string> tokens, int line)
             assignVar("$sysOutput", re);
             i += 2;
         }
+        else if (tokens[i] == "module_import")
+        {
+            string ftxt;
+            string code;
+            string code_;
+            vector <string> codes = {};
+            string fName = "./modules_doS/"+tokens[i+1]+".do";
+            // open file
+            ifstream f(fName);
+            while (getline(f,code))
+            {
+              //cout << code << endl;
+              lexer(code,codes);
+            }
+            f.close();  
+            parse(file,codes,line);
+            codes.clear();
+          i += 2;
+        }
         else if (tokens[i] == "endloop")
         {
             int add;
@@ -956,14 +1000,14 @@ int main(int argc, char *argv[])
                     else
                     {
                         // read file and create Token
-                        lexer(ftxt);
+                        lexer(ftxt,tokens);
                         lineL++;
                     }
                 }
                 // run parse
 
                 parse(argv[1], tokens, 1);
-                // viewToken();
+                //viewToken();
                 file.close();
             }
             else

@@ -1,3 +1,3 @@
 func hello() ~ 
-out "hello world"
+  out "hello world"
 endfunc
