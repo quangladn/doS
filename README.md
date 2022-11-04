@@ -92,3 +92,8 @@ out "\n"
 get "hello: " $name
 $name_2 = getName($name)
 ```
+#### module
+```
+module_import test
+hello()
+```
